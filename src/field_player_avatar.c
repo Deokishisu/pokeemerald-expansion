@@ -93,6 +93,7 @@ static bool8 PlayerAnimIsMultiFrameStationaryAndStateNotTurning(void);
 static bool8 PlayerIsAnimActive(void);
 static bool8 PlayerCheckIfAnimFinishedOrInactive(void);
 
+static void PlayerWalkSlowStairs(u8 direction);
 static void PlayerWalkSlow(u8 direction);
 static void PlayerRunSlow(u8 direction);
 static void PlayerRun(u8);
@@ -687,7 +688,7 @@ static void PlayerNotOnBikeMoving(u8 direction, u16 heldKeys)
     else
     {
         if (ObjectMovingOnRockStairs(&gObjectEvents[gPlayerAvatar.objectEventId], direction))
-            PlayerWalkSlow(direction);
+            PlayerWalkSlowStairs(direction);
         else
             PlayerWalkNormal(direction);
     }
@@ -1000,6 +1001,12 @@ void PlayerSetAnimId(u8 movementActionId, u8 copyableMovement)
         PlayerSetCopyableMovement(copyableMovement);
         ObjectEventSetHeldMovement(&gObjectEvents[gPlayerAvatar.objectEventId], movementActionId);
     }
+}
+
+// slow stairs (from FRLG--faster than slow)
+void PlayerWalkSlowStairs(u8 direction)
+{
+    PlayerSetAnimId(GetWalkSlowStairsMovementAction(direction), 2);
 }
 
 // slow
