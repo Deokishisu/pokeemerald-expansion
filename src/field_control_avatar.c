@@ -1226,6 +1226,8 @@ void CancelSignPostMessageBox(struct FieldInput *input)
 
     if (IsDpadPushedToTurnOrMovePlayer(input))
     {
+        if (IsMsgBoxWalkawayDisabled() == TRUE)
+            return;
         ScriptContext_SetupScript(EventScript_CancelMessageBox);
         LockPlayerFieldControls();
         return;

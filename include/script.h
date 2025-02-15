@@ -66,4 +66,9 @@ void SetMovingNpcId(u16 npcId);
 extern u8 gMsgIsSignPost;
 extern u8 gMsgBoxIsCancelable;
 
+// Walk away when script finished
+void DisableMsgBoxWalkaway(void);
+void EnableMsgBoxWalkaway(void);
+bool8 IsMsgBoxWalkawayDisabled(void);
+
 #endif // GUARD_SCRIPT_H

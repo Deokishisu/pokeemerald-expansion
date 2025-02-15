@@ -68,6 +68,7 @@ static EWRAM_DATA u16 sFieldEffectScriptId = 0;
 
 static u8 sBrailleWindowId;
 static bool8 sIsScriptedWildDouble;
+static struct ScriptContext * sScriptContextPtr;
 
 extern const SpecialFunc gSpecials[];
 extern const u8 *gStdScripts[];
@@ -75,6 +76,7 @@ extern const u8 *gStdScripts_End[];
 
 static void CloseBrailleWindow(void);
 static void DynamicMultichoiceSortList(struct ListMenuItem *items, u32 count);
+static bool8 ScriptContext_NextCommandEndsScript(struct ScriptContext * ctx);
 
 // This is defined in here so the optimizer can't see its value when compiling
 // script.c.
@@ -1308,7 +1310,6 @@ bool8 ScrCmd_releaseall(struct ScriptContext *ctx)
     ObjectEventClearHeldMovementIfFinished(&gObjectEvents[playerObjectId]);
     ScriptMovement_UnfreezeObjectEvents();
     UnfreezeObjectEvents();
-    gMsgBoxIsCancelable = FALSE;
     return FALSE;
 }
 
@@ -1327,7 +1328,6 @@ bool8 ScrCmd_release(struct ScriptContext *ctx)
     ObjectEventClearHeldMovementIfFinished(&gObjectEvents[playerObjectId]);
     ScriptMovement_UnfreezeObjectEvents();
     UnfreezeObjectEvents();
-    gMsgBoxIsCancelable = FALSE;
     return FALSE;
 }
 
@@ -1394,11 +1394,25 @@ static bool8 WaitForAorBPress(void)
         return TRUE;
     if (JOY_NEW(B_BUTTON))
         return TRUE;
+
+    if (ScriptContext_NextCommandEndsScript(sScriptContextPtr) == TRUE)
+    {
+        if ((JOY_HELD(DPAD_UP) && gSpecialVar_Facing != DIR_NORTH) ||
+            (JOY_HELD(DPAD_DOWN) && gSpecialVar_Facing != DIR_SOUTH) ||
+            (JOY_HELD(DPAD_LEFT) && gSpecialVar_Facing != DIR_WEST) ||
+            (JOY_HELD(DPAD_RIGHT) && gSpecialVar_Facing != DIR_EAST))
+        {
+            gMsgBoxIsCancelable = FALSE;
+            return TRUE;
+        }
+    }
+
     return FALSE;
 }
 
 bool8 ScrCmd_waitbuttonpress(struct ScriptContext *ctx)
 {
+    sScriptContextPtr = ctx;
     SetupNativeScript(ctx, WaitForAorBPress);
     return TRUE;
 }
@@ -2583,4 +2597,19 @@ bool8 ScrFunc_hidefollower(struct ScriptContext *ctx)
 
     // execute next script command with no delay
     return TRUE;
+}
+
+static bool8 ScriptContext_NextCommandEndsScript(struct ScriptContext * ctx)
+{
+    const u8 * script = ctx->scriptPtr;
+    u8 nextCmd = *script;
+    if (nextCmd == 3) // return
+    {
+        script = ctx->stack[ctx->stackDepth - 1];
+        nextCmd = *script;
+    }
+    if (nextCmd < 0x6B || nextCmd > 0x6C) // releaseall or release
+        return FALSE;
+    else
+        return TRUE;
 }
