@@ -1388,6 +1388,35 @@ bool8 ScrCmd_closemessage(struct ScriptContext *ctx)
     return FALSE;
 }
 
+static u8 ScriptContext_GetEndScriptInput(struct ScriptContext * ctx)
+{
+    if (JOY_HELD(DPAD_UP) && gSpecialVar_Facing != DIR_NORTH)
+        return gBufferedWalkawayInput = DPAD_UP;
+
+    if (JOY_HELD(DPAD_DOWN) && gSpecialVar_Facing != DIR_SOUTH)
+        return gBufferedWalkawayInput = DPAD_DOWN;
+
+    if (JOY_HELD(DPAD_LEFT) && gSpecialVar_Facing != DIR_WEST)
+        return gBufferedWalkawayInput = DPAD_LEFT;
+
+    if (JOY_HELD(DPAD_RIGHT) && gSpecialVar_Facing != DIR_EAST)
+        return gBufferedWalkawayInput = DPAD_RIGHT;
+
+    if (JOY_NEW(L_BUTTON))
+        return gBufferedWalkawayInput = L_BUTTON;
+
+    if (JOY_HELD(R_BUTTON))
+        return gBufferedWalkawayInput = R_BUTTON;
+
+    if (JOY_HELD(START_BUTTON))
+        return gBufferedWalkawayInput = START_BUTTON;
+
+    if (JOY_HELD(SELECT_BUTTON))
+        return gBufferedWalkawayInput = SELECT_BUTTON;
+
+    return 0;
+}
+
 static bool8 WaitForAorBPress(void)
 {
     if (JOY_NEW(A_BUTTON))
@@ -1397,11 +1426,12 @@ static bool8 WaitForAorBPress(void)
 
     if (ScriptContext_NextCommandEndsScript(sScriptContextPtr) == TRUE)
     {
-        if ((JOY_HELD(DPAD_UP) && gSpecialVar_Facing != DIR_NORTH) ||
-            (JOY_HELD(DPAD_DOWN) && gSpecialVar_Facing != DIR_SOUTH) ||
-            (JOY_HELD(DPAD_LEFT) && gSpecialVar_Facing != DIR_WEST) ||
-            (JOY_HELD(DPAD_RIGHT) && gSpecialVar_Facing != DIR_EAST))
+        if (ScriptContext_GetEndScriptInput(sScriptContextPtr))
         {
+            if(gBufferedWalkawayInput >= DPAD_RIGHT && gBufferedWalkawayInput <= DPAD_DOWN)
+            {   // FRLG ends script with DPAD input but doesn't actually turn--unbuffer that input
+                gBufferedWalkawayInput = 0;
+            }
             gMsgBoxIsCancelable = FALSE;
             return TRUE;
         }

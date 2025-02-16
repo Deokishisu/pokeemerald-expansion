@@ -31,6 +31,7 @@ static bool8 sLockFieldControls;
 static bool8 sMsgBoxWalkawayDisabled;
 EWRAM_DATA u8 gMsgIsSignPost = FALSE;
 EWRAM_DATA u8 gMsgBoxIsCancelable = FALSE;
+EWRAM_DATA u16 gBufferedWalkawayInput = 0;
 
 extern ScrCmdFunc gScriptCmdTable[];
 extern ScrCmdFunc gScriptCmdTableEnd[];
